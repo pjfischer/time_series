@@ -401,16 +401,9 @@ def main() -> int:
             last_idx = df.dropna(subset=["LogPrice"]).index[-1]
             freq = pd.infer_freq(df.dropna(subset=["LogPrice"]).index)
             if freq is None and args.interval == "1d":
-                # Start from next business day after last_idx
-                start_date = pd.bdate_range(last_idx, periods=2)[-1]
-                idx = pd.bdate_range(start_date, periods=len(arima_fc))
+                idx = pd.bdate_range(last_idx, periods=len(arima_fc) + 1, inclusive="right")
             else:
-                # Start from next period after last_idx
-                if freq is None:
-                    freq = "D"  # Default to daily
-                # Get next period by generating 2 periods and taking the last one
-                start_date = pd.date_range(last_idx, periods=2, freq=freq)[-1]
-                idx = pd.date_range(start_date, periods=len(arima_fc), freq=freq)
+                idx = pd.date_range(last_idx, periods=len(arima_fc) + 1, freq=freq, inclusive="right")
             arima_fc.index = idx
 
             arima_fc.to_csv(os.path.join(out_dir, "arima_forecast.csv"), index=True)
