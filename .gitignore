@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+
+# Default output folders for this tool
+out/
+out_*/
