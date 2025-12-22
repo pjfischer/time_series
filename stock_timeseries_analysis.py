@@ -22,7 +22,7 @@ import json
 import math
 import os
 from dataclasses import asdict, dataclass
-from datetime import date
+from datetime import date, timedelta
 from typing import Any, Iterable, Optional, Tuple
 
 import matplotlib
@@ -347,11 +347,13 @@ def save_plots(df: pd.DataFrame, ticker: str, out_dir: str, horizon: int, arima_
 def main() -> int:
     parser = argparse.ArgumentParser(description="Time series analysis for a single stock ticker")
     parser.add_argument("ticker", help="Stock ticker symbol (e.g., AAPL)")
-    parser.add_argument("--start", default="2015-01-01", help="Start date (YYYY-MM-DD)")
+    # Default to 5 years of historical data
+    default_start = (date.today() - timedelta(days=5*365)).isoformat()
+    parser.add_argument("--start", default=default_start, help="Start date (YYYY-MM-DD, default: 5 years ago)")
     parser.add_argument(
         "--end",
         default=date.today().isoformat(),
-        help="End date (YYYY-MM-DD)",
+        help="End date (YYYY-MM-DD, default: today)",
     )
     parser.add_argument("--interval", default="1d", help="Data interval (e.g., 1d, 1h)")
     parser.add_argument("--out", default="out", help="Output directory")
@@ -361,15 +363,17 @@ def main() -> int:
     src.add_argument("--demo", action="store_true", help="Use synthetic demo data (offline-friendly)")
 
     parser.add_argument(
-        "--arima",
-        action="store_true",
-        help="Fit ARIMA on log price and forecast",
+        "--no-arima",
+        action="store_false",
+        dest="arima",
+        default=True,
+        help="Disable ARIMA modeling (ARIMA is enabled by default)",
     )
     parser.add_argument(
         "--horizon",
         type=int,
         default=20,
-        help="Forecast steps (only with --arima)",
+        help="Forecast steps (for ARIMA modeling)",
     )
 
     args = parser.parse_args()
